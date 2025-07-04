@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 
 interface TerminalProps {
   history: Array<{
@@ -19,6 +20,7 @@ interface TerminalProps {
 
 export function Terminal({ history, input, setInput, onSubmit, compact = false }: TerminalProps) {
   const [cursorVisible, setCursorVisible] = useState(true)
+  const [showHelp, setShowHelp] = useState(false)
   const terminalRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -59,12 +61,41 @@ export function Terminal({ history, input, setInput, onSubmit, compact = false }
     onSubmit(input)
   }
 
+  const toggleHelp = () => {
+    setShowHelp(!showHelp)
+  }
+
   return (
     <div className="flex flex-col h-full">
       <div className="text-xs text-gray-600 border-b border-gray-800 pb-2 mb-2 flex justify-between">
         <span>FLOAT.terminal | Connected</span>
-        <span>{new Date().toISOString().split("T")[0]}</span>
+        <div className="flex items-center space-x-2">
+          <Badge 
+            variant="outline" 
+            className="text-xs bg-transparent border-green-800 text-green-400 cursor-pointer hover:bg-green-900/20"
+            onClick={toggleHelp}
+          >
+            ?
+          </Badge>
+          <span>{new Date().toISOString().split("T")[0]}</span>
+        </div>
       </div>
+
+      {showHelp && (
+        <div className="mb-3 p-2 border border-green-900 bg-black/50 text-xs">
+          <h4 className="text-green-400 mb-1">FLOAT Terminal Commands:</h4>
+          <ul className="text-gray-400 space-y-1">
+            <li><span className="text-green-400">xray</span> - Toggle X-Ray mode</li>
+            <li><span className="text-green-400">view [number]</span> - View journal entry (1-5)</li>
+            <li><span className="text-green-400">clear</span> - Clear terminal</li>
+            <li><span className="text-green-400">about</span> - About this project</li>
+            <li><span className="text-green-400">help</span> - Show this help</li>
+          </ul>
+          <div className="mt-2 text-pink-400 border-t border-gray-800 pt-1">
+            <span className="text-xs">FLOAT Concept Explorer v0.3.4</span>
+          </div>
+        </div>
+      )}
 
       <div
         ref={terminalRef}
@@ -107,7 +138,12 @@ export function Terminal({ history, input, setInput, onSubmit, compact = false }
         <span className="w-2 h-4 bg-green-400 ml-1" style={{ opacity: cursorVisible ? 1 : 0 }}></span>
       </form>
 
-      <div className="text-xs text-gray-600 mt-4 pt-2 border-t border-gray-800">Type "help" for available commands</div>
+      <div className="text-xs text-gray-600 mt-4 pt-2 border-t border-gray-800">
+        <div className="flex justify-between">
+          <span>Type "help" for available commands</span>
+          <span className="text-pink-500">{"{■}"} Shacks not Cathedrals</span>
+        </div>
+      </div>
     </div>
   )
 }

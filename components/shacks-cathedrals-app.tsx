@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ResizablePanel } from "@/components/ui/resizable-panel"
 import { Terminal } from "@/components/terminal"
 import { MDXContent } from "@/components/mdx-content"
 import { Button } from "@/components/ui/button"
-import { Eye, EyeOff, Menu } from "lucide-react"
+import { Eye, EyeOff, Menu } from 'lucide-react'
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
@@ -15,16 +15,51 @@ export function ShacksCathedralsApp() {
   const [selectedJournalId, setSelectedJournalId] = useState(1)
   const [terminalHistory, setTerminalHistory] = useState<
     Array<{ text: string; isClickable?: boolean; onClick?: () => void }>
-  >([{ text: "FLOAT.ShacksCathedrals v0.3.4 initialized" }, { text: "Type 'help' for available commands" }])
+  >([
+    { text: "FLOAT.ShacksCathedrals v0.3.4 initialized" }, 
+    { text: "Type 'help' for available commands" },
+    { text: "Shacks not Cathedrals: A modular approach to knowledge management" }
+  ])
   const [terminalInput, setTerminalInput] = useState("")
   const isMobile = useMediaQuery("(max-width: 768px)")
+  const [bootSequence, setBootSequence] = useState(true)
+
+  // Boot sequence effect
+  useEffect(() => {
+    if (bootSequence) {
+      const bootMessages = [
+        "Initializing FLOAT memory engine...",
+        "Loading FloatAST data structures...",
+        "Connecting to RitualAST framework...",
+        "Establishing dual-layer architecture...",
+        "Concept Layer: ACTIVE",
+        "Projection Layer: READY",
+        "X-Ray Mode: AVAILABLE",
+        "FLOAT Concept Explorer ready for interaction."
+      ]
+      
+      let delay = 300
+      bootMessages.forEach((message) => {
+        setTimeout(() => {
+          addToTerminal(message)
+        }, delay)
+        delay += 300
+      })
+      
+      setTimeout(() => {
+        setBootSequence(false)
+      }, delay)
+    }
+  }, [bootSequence])
 
   const toggleXRayMode = () => {
     if (!xrayMode) {
       addToTerminal("Activating X-Ray mode...")
-      addToTerminal("Revealing hidden connections...")
+      addToTerminal("Loading FloatAST node structures...")
+      addToTerminal("Revealing connections between Concept and Projection layers...")
     } else {
       addToTerminal("Deactivating X-Ray mode...")
+      addToTerminal("Returning to standard Projection Layer view...")
     }
     setXrayMode(!xrayMode)
   }
@@ -44,14 +79,21 @@ export function ShacksCathedralsApp() {
       addToTerminal("  view [number] - View journal entry (1-5)")
       addToTerminal("  clear - Clear terminal")
       addToTerminal("  about - About this project")
+      addToTerminal("  philosophy - Explain Shacks not Cathedrals")
     } else if (cmd === "xray") {
       toggleXRayMode()
     } else if (cmd === "clear") {
       setTerminalHistory([])
     } else if (cmd === "about") {
-      addToTerminal("Shacks Not Cathedrals - A Journey from Journal to Philosophy")
+      addToTerminal("FLOAT Concept Explorer - A Journey from Journal to Philosophy")
       addToTerminal("Version 0.3.4 - FLOAT Memory Engine Active")
       addToTerminal("© 2025 Evan Schultz")
+    } else if (cmd === "philosophy") {
+      addToTerminal("Shacks not Cathedrals Philosophy:")
+      addToTerminal("Prioritizing adaptability, modularity, and resilience over rigid perfection.")
+      addToTerminal("Systems should be like shacks — adaptable, lived-in, resistant to collapse.")
+      addToTerminal("Every element is designed for adaptability, survivability, and creative emergence.")
+      addToTerminal("FLOAT embodies this through its dual-layer architecture and X-ray mode.")
     } else if (cmd.startsWith("view ")) {
       const num = Number.parseInt(cmd.split(" ")[1])
       if (num >= 1 && num <= 5) {
@@ -162,7 +204,11 @@ export function ShacksCathedralsApp() {
       <footer className="border-t border-green-900 p-3 text-xs text-gray-600">
         <div className="flex justify-between items-center">
           <div>FLOAT.ShacksCathedrals © 2025</div>
-          <div>recursive_memory::active • connection::secure • terminal::ready</div>
+          <div>
+            <span className="text-pink-500">{"{∴}"}</span> recursive_memory::active • 
+            <span className="text-pink-500">{"{⊡}"}</span> connection::secure • 
+            <span className="text-pink-500">{"{■}"}</span> terminal::ready
+          </div>
         </div>
       </footer>
     </div>
@@ -177,11 +223,11 @@ function JournalNavigation({
   setSelectedJournalId: (id: number) => void
 }) {
   const journalEntries = [
-    { id: 1, title: "Early Pattern Drawing" },
-    { id: 2, title: "CAN'T SIT STILL" },
-    { id: 3, title: "Adaptation & Growth" },
-    { id: 4, title: "Dots & Patterns" },
-    { id: 5, title: "Frame & Imperfections" },
+    { id: 1, title: "Early Pattern Drawing", sigil: "{∴}" },
+    { id: 2, title: "CAN'T SIT STILL", sigil: "{ψ}" },
+    { id: 3, title: "Adaptation & Growth", sigil: "{∞}" },
+    { id: 4, title: "Dots & Patterns", sigil: "{∴}" },
+    { id: 5, title: "Frame & Imperfections", sigil: "{■}" },
   ]
 
   return (
@@ -197,7 +243,8 @@ function JournalNavigation({
               : "hover:bg-gray-900",
           )}
         >
-          <span className="text-gray-500 mr-2">{entry.id}:</span> {entry.title}
+          <span className="text-gray-500 mr-2">{entry.id}:</span>
+          <span className="text-pink-500 mr-1">{entry.sigil}</span> {entry.title}
         </button>
       ))}
     </div>

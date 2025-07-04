@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface MDXContentProps {
   journalId: number
@@ -11,6 +13,7 @@ interface MDXContentProps {
 export function MDXContent({ journalId, xrayMode }: MDXContentProps) {
   const [loading, setLoading] = useState(true)
   const [journal, setJournal] = useState<any>(null)
+  const [activeTab, setActiveTab] = useState("journal")
 
   useEffect(() => {
     async function fetchJournalContent() {
@@ -55,10 +58,48 @@ export function MDXContent({ journalId, xrayMode }: MDXContentProps) {
           </h2>
           <div className="text-sm text-gray-500 mb-4">{journal.date}</div>
 
-          <div className="mb-6 border border-gray-800 p-4 bg-gray-900/20 rounded-sm">
-            <div className="text-amber-400 mb-2">&gt; Journal Entry:</div>
-            <div className="text-green-300">{journal.content}</div>
-          </div>
+          <Tabs defaultValue="journal" className="mb-6" onValueChange={setActiveTab}>
+            <TabsList className="bg-gray-900/30 border border-gray-800">
+              <TabsTrigger value="journal">Journal Entry</TabsTrigger>
+              <TabsTrigger value="concept">Concept Layer</TabsTrigger>
+              {xrayMode && <TabsTrigger value="floatast">FloatAST</TabsTrigger>}
+            </TabsList>
+            <TabsContent value="journal" className="border border-gray-800 p-4 bg-gray-900/20 rounded-sm mt-2">
+              <div className="text-amber-400 mb-2">&gt; Journal Entry:</div>
+              <div className="text-green-300">{journal.content}</div>
+            </TabsContent>
+            <TabsContent value="concept" className="border border-gray-800 p-4 bg-gray-900/20 rounded-sm mt-2">
+              <div className="text-amber-400 mb-2">&gt; Concept Layer:</div>
+              <div className="text-green-300">
+                <p className="mb-2">
+                  This journal entry connects to the "{journal.conceptTheme}" concept theme within the FLOAT system.
+                </p>
+                <p>
+                  Core sigil: <span className="text-pink-500 font-bold">{journal.coreSigil}</span> - Represents{" "}
+                  {journal.sigilMeaning}
+                </p>
+              </div>
+            </TabsContent>
+            {xrayMode && (
+              <TabsContent value="floatast" className="border border-gray-800 p-4 bg-gray-900/20 rounded-sm mt-2">
+                <div className="text-amber-400 mb-2">&gt; FloatAST Node:</div>
+                <pre className="text-xs text-green-300 font-mono bg-black/50 p-3 rounded overflow-auto">
+                  {`{
+  "uid": "${journal.id}",
+  "type": "journal",
+  "title": "${journal.title}",
+  "timestamp": "${journal.date}",
+  "sigil": "${journal.coreSigil}",
+  "metadata": {
+    "conceptTheme": "${journal.conceptTheme}",
+    "sigilMeaning": "${journal.sigilMeaning}"
+  },
+  "tags": ${JSON.stringify(journal.tags || [])}
+}`}
+                </pre>
+              </TabsContent>
+            )}
+          </Tabs>
 
           {xrayMode && (
             <div id="concept-connections" className="border-t border-pink-900/30 pt-4 mt-4">
@@ -88,14 +129,10 @@ export function MDXContent({ journalId, xrayMode }: MDXContentProps) {
 
         <div>
           <div className="aspect-video bg-gray-900/30 rounded-sm border border-gray-800 mb-4 overflow-hidden">
-            <img
-              src={journal.imagePath || "/placeholder.svg"}
-              alt={journal.title}
-              className="w-full h-full object-cover"
-            />
+            <img src={journal.imagePath || "/placeholder.svg"} alt={journal.title} className="w-full h-full object-cover" />
           </div>
 
-          <div className="border border-gray-800 p-3 rounded-sm">
+          <div className="border border-gray-800 p-3 rounded-sm mb-4">
             <h3 className="text-blue-400 text-sm mb-2">CONNECTED CONCEPTS:</h3>
             <div className="space-y-2">
               {journal.connectedConcepts.map((concept: any) => (
@@ -114,6 +151,35 @@ export function MDXContent({ journalId, xrayMode }: MDXContentProps) {
               ))}
             </div>
           </div>
+
+          {xrayMode && (
+            <div className="border border-pink-800 p-3 rounded-sm">
+              <h3 className="text-pink-400 text-sm mb-2">FLOAT METADATA:</h3>
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  {journal.tags?.map((tag: string) => (
+                    <Badge key={tag} variant="outline" className="bg-pink-900/20 text-pink-300 border-pink-800">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+                <div className="text-xs text-gray-400 mt-2">
+                  <div className="flex justify-between">
+                    <span>Layer:</span>
+                    <span className="text-pink-300">Concept</span>
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span>Projection:</span>
+                    <span className="text-pink-300">{activeTab === "journal" ? "Journal" : "Concept Explorer"}</span>
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span>RitualAST:</span>
+                    <span className="text-pink-300">{journal.ritualProcess || "None"}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -177,6 +243,11 @@ function getJournalData(journalId: number) {
       imagePath: "/chromatic-flow.png",
       content:
         "Started to connect the dots in this journal as a way to relax, and calm down anxiety attacks. The early drawings were angry scribbles - then I started to focus on slowing down my breath and trying to draw straight lines.",
+      conceptTheme: "Embracing Imperfection",
+      coreSigil: "{∴}",
+      sigilMeaning: "patterns that emerge from imperfection",
+      ritualProcess: "Pattern Drawing",
+      tags: ["pattern-drawing", "anxiety-management", "imperfection"],
       conceptConnections: [
         {
           concept: "Embracing Imperfection",
@@ -224,6 +295,11 @@ function getJournalData(journalId: number) {
       imagePath: "/fluid-motion.png",
       content:
         "Maybe what I was trying to prove to myself is that I could ignore what works for me - and still be successful. That not doing it because of #ADHD would feel like a failure.",
+      conceptTheme: "Systems That Serve Humans",
+      coreSigil: "{ψ}",
+      sigilMeaning: "neurodivergent-friendly systems",
+      ritualProcess: "Adaptation",
+      tags: ["adhd", "neurodivergent-design", "self-acceptance"],
       conceptConnections: [
         {
           concept: "Systems That Serve Humans",
@@ -271,6 +347,11 @@ function getJournalData(journalId: number) {
       imagePath: "/generative-bloom.png",
       content:
         "I had a coworker make an animated version of a few of these. I was drawing for myself, posting photos now and then - to have someone I respect as a designer do an animated version of these made me really happy. I thought I wasn't creative, and was nervous to share.",
+      conceptTheme: "Collaborative Evolution",
+      coreSigil: "{∞}",
+      sigilMeaning: "regenerative growth through collaboration",
+      ritualProcess: "Sharing",
+      tags: ["collaboration", "creative-growth", "sharing"],
       conceptConnections: [
         {
           concept: "Collaborative Evolution",
@@ -317,6 +398,11 @@ function getJournalData(journalId: number) {
       imagePath: "/spilled-dots.png",
       content:
         "I remember sitting in Balzacs, having a orange citrus ginger drink. It kept spilling on the page - I almost wanted to start over, but reminded myself to accept imperfections.",
+      conceptTheme: "Environmental Integration",
+      coreSigil: "{∴}",
+      sigilMeaning: "incorporating unexpected elements",
+      ritualProcess: "Adaptation",
+      tags: ["accidents", "adaptation", "imperfection"],
       conceptConnections: [
         {
           concept: "Environmental Integration",
@@ -362,6 +448,11 @@ function getJournalData(journalId: number) {
       date: "November 2023",
       imagePath: "/imperfect-geometric-frame.png",
       content: "HAVE A ROUGH FRAME WORK TO GUIDE YOU BUT ACCEPT THE IMPERFECTIONS",
+      conceptTheme: "Shacks vs. Cathedrals",
+      coreSigil: "{■}",
+      sigilMeaning: "minimal viable structure",
+      ritualProcess: "Framework Building",
+      tags: ["frameworks", "minimal-structure", "shacks-not-cathedrals"],
       conceptConnections: [
         {
           concept: "Shacks vs. Cathedrals",
